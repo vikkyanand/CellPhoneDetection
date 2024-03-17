@@ -1,0 +1,17 @@
+# Virtual environment (replace with your actual name if different)
+venv/
+
+# IDE/editor temporary files
+.idea/
+__pycache__/
+.vscode/
+
+# System-specific files
+*.exe  # Windows executables
+*.DS_Store  # macOS desktop service store files
+
+# Local development settings (if applicable)
+local_settings.py
+
+# Environment variables with sensitive data (if applicable)
+secrets.env
