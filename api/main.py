@@ -1,14 +1,14 @@
-from fastapi import FastAPI, File, UploadFile , HTTPException
+from bson import ObjectId
+from fastapi import FastAPI, File, Path, UploadFile , HTTPException
 import os
-from fastapi.staticfiles import StaticFiles
+
 import sys
 sys.path.append('f:/assignment tescra/ML_assignment\CellPhoneDetection') 
-#sys.path.append('f:/assignment tescra/ml/assignment') 
-app = FastAPI()
 from utils.image_processing import detect_cellphone_in_image
-
 from pymongo import MongoClient
 from gridfs import GridFS
+
+
 app = FastAPI()
 
 # Connect to MongoDB
@@ -19,6 +19,7 @@ fs = GridFS(db)
 # Define directory to temporarily store uploaded files
 UPLOAD_TEMP_DIR = "temp_uploads"
 os.makedirs(UPLOAD_TEMP_DIR, exist_ok=True)
+
 
 @app.post("/upload/")
 async def upload_file(file: UploadFile = File(...)):
@@ -34,24 +35,53 @@ async def upload_file(file: UploadFile = File(...)):
     # Remove the temporary file
     os.remove(file_path)
 
-    # Perform prediction
     contents = fs.get(file_id).read()
-    result = detect_cellphone_in_image(contents)
+    prediction = detect_cellphone_in_image(contents)
 
-    return {"file_id": str(file_id), "prediction": result}
+    # Save prediction in MongoDB
+    filename = file.filename
+    prediction_collection = db["predictions"]
+    prediction_collection.insert_one({"file_id": file_id, "filename": filename, "prediction": prediction})
 
-@app.get("/download/{file_id}")
-async def download_file(file_id: str):
-    # Check if file exists in GridFS
-    if not fs.exists({"_id": file_id}):
-        raise HTTPException(status_code=404, detail="File not found")
+    return {"file_id": str(file_id), "prediction": prediction}
 
-    # Retrieve the file from GridFS
-    file = fs.get(file_id)
+@app.get("/images/")
+async def get_images_with_predictions():
+    images_with_predictions = []
+    try:
+        prediction_collection = db["predictions"]
+        for prediction_doc in prediction_collection.find():
+            file_id = prediction_doc["file_id"]
+            filename = fs.get(file_id).filename
+            prediction = prediction_doc["prediction"]
+            images_with_predictions.append({"filename": filename, "prediction": prediction})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    return images_with_predictions
 
-    # Return the file as response
-    return {"filename": file.filename, "content": file.read()}
+@app.get("/images/{file_identifier}")
+async def get_prediction(
+    file_identifier: str = Path(..., description="File ID or Name"),
+):
+    try:
+        if ObjectId.is_valid(file_identifier):
+            # If the identifier is a valid ObjectId, query by file_id
+            prediction_doc = db["predictions"].find_one({"file_id": ObjectId(file_identifier)})
+        else:
+            # If not, query by filename
+            prediction_doc = db["predictions"].find_one({"filename": file_identifier})
 
+        if prediction_doc:
+            file_id = prediction_doc["file_id"]
+            filename = fs.get(file_id).filename
+            prediction = prediction_doc["prediction"]
+            return {"filename": filename, "prediction": prediction}
+        else:
+            raise HTTPException(status_code=404, detail="Prediction not found")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
