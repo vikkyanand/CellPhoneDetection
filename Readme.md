@@ -13,7 +13,7 @@ git clone https://github.com/vikkyanand/CellPhoneDetection.git
 2. Navigate to the project directory:
 
 ```bash
-cd cellPhoneDetection
+cd CellPhoneDetection
 ```
 
 3. Create and activate a virtual environment (optional but recommended):
