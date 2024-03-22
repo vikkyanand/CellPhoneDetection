@@ -4,13 +4,34 @@ import torchvision.transforms as transforms
 from torchvision.models.detection import fasterrcnn_resnet50_fpn
 from PIL import Image
 
-def detect_cellphone_in_image(image_bytes):
+# Define global variable for the model
+model = None
+
+def load_model()->None:
+    """
+    Lazily loads the pre-trained object detection model if not already loaded.
+    """
+    global model
+    if model is None:
+        # Load the pre-trained model
+        model = fasterrcnn_resnet50_fpn(pretrained=True)
+        model.eval()
+
+def detect_cellphone_in_image(image_bytes: bytes)->bool:
+    """
+    Detects if a cellphone is present in the given image.
+
+    Args:
+        image_bytes (bytes): The image data in bytes.
+
+    Returns:
+        bool: True if a cellphone is detected, False otherwise.
+    """
+    # load the model
+    load_model()
+
     # Define transform to preprocess the image
     transform = transforms.Compose([transforms.ToTensor()])
-    
-    # Load the pre-trained model
-    model = fasterrcnn_resnet50_fpn(pretrained=True)
-    model.eval()
     
     # Process the image
     image = Image.open(io.BytesIO(image_bytes))

@@ -3,9 +3,10 @@ from fastapi import FastAPI, File, Path, UploadFile , HTTPException
 import os
 from models import FileUpload, PredictionRequest, PredictionResponse  # Import data models
 import sys
-# Add the directory containing the 'image_processing.py' module to sys.path
+# Add the directory containing the 'image_processing.py' module to sys.path 
 image_processing_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'utils'))
 sys.path.append(image_processing_dir)
+
 from image_processing import detect_cellphone_in_image
 
 
@@ -21,6 +22,15 @@ os.makedirs(UPLOAD_TEMP_DIR, exist_ok=True)
 
 @app.post("/upload/")
 async def upload_and_predict(file: UploadFile = File(...)):
+    """
+    Uploads an image file and performs cellphone detection prediction.
+
+    Args:
+        file (UploadFile): The image file to be uploaded.
+
+    Returns:
+        dict: A dictionary containing the file ID and prediction.
+    """
     try:
         # Read the file content
         file_content = await file.read()
@@ -58,10 +68,19 @@ async def upload_and_predict(file: UploadFile = File(...)):
 
 @app.get("/images/")
 async def get_images_with_predictions():
+    """
+    Retrieves a list of all images with their predictions.
+
+    Returns:
+        list: A list of PredictionResponse objects containing filenames and predictions.
+    """
+
     images_with_predictions = []
     try:
+    # Retrieve the prediction collection from MongoDB
         prediction_collection = db["predictions"]
         for prediction_doc in prediction_collection.find():
+            # Extract the filename and prediction from the document
             filename = prediction_doc["filename"]
             prediction = prediction_doc["prediction"]
             images_with_predictions.append(PredictionResponse(filename=filename, prediction=prediction))
@@ -74,6 +93,15 @@ async def get_images_with_predictions():
 async def get_prediction(
     file_identifier: str = Path(..., description="File ID or Name"),
 ):
+    """
+    Retrieves the prediction for a specific image.
+
+    Args:
+        file_identifier (str): The file ID or name.
+
+    Returns:
+        PredictionResponse: The PredictionResponse object containing the filename and prediction.
+    """
     try:
         if ObjectId.is_valid(file_identifier):
             # If the identifier is a valid ObjectId, query by file_id
@@ -90,10 +118,10 @@ async def get_prediction(
             raise HTTPException(status_code=404, detail="Prediction not found")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
 
-
+ # Run the FastAPI application using uvicorn
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
 
-#uvicorn main:app --reload
