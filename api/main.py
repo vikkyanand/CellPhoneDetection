@@ -5,16 +5,11 @@ import os
 import sys
 sys.path.append('f:/assignment tescra/ML_assignment\CellPhoneDetection') 
 from utils.image_processing import detect_cellphone_in_image
-from pymongo import MongoClient
-from gridfs import GridFS
-
 
 app = FastAPI()
 
 # Connect to MongoDB
-client = MongoClient("mongodb://localhost:27017")
-db = client["uploads"]
-fs = GridFS(db)
+from database import db, fs
 
 # Define directory to temporarily store uploaded files
 UPLOAD_TEMP_DIR = "temp_uploads"
