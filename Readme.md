@@ -63,3 +63,7 @@ To get the prediction for a specific image, send a GET request to /images/{file_
 ```bash
 curl http://localhost:8000/images/605c34b1c1e2022df068f5b1
 ```
+
+## GitHub Repository
+
+You can find the source code for this project on [GitHub Repository](https://github.com/vikkyanand/CellPhoneDetection).
