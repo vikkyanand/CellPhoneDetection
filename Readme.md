@@ -36,6 +36,8 @@ pip install -r requirements.txt
 uvicorn main:app --reload
 ```
 
+The FastAPI application will start running. You can access it at http://localhost:8000/docs.
+
 ## Usage
 
 ### Uploading Images and Making Predictions
@@ -56,13 +58,23 @@ To retrieve images with predictions, send a GET request to /images/. This will r
 curl http://localhost:8000/images/
 ```
 
-### Getting Prediction for a Specific Image
+## Docker Setup
 
-To get the prediction for a specific image, send a GET request to /images/{file_id} or /images/{filename}.
+1. Make sure you have Docker installed on your machine. You can download and install Docker from the official Docker website.
+
+2. Build the Docker container:
 
 ```bash
-curl http://localhost:8000/images/605c34b1c1e2022df068f5b1
+docker-compose build
 ```
+
+3. Run the Docker container:
+
+```bash
+docker-compose up
+```
+
+The FastAPI application will start running in a Docker container. You can access it at http://localhost:8000/docs.
 
 ## GitHub Repository
 
