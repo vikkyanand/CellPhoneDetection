@@ -11,14 +11,16 @@ WORKDIR /app
 # Set the PYTHONPATH environment variable
 ENV PYTHONPATH=/app
 
-# Copy the requirements.txt file into the container at /app
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy only the requirements.txt file initially to leverage Docker cache
 COPY requirements.txt .
 
-# Install the project dependencies
-RUN pip install --default-timeout=100 --no-cache-dir -r requirements.txt
-
-# Copy the entire project directory into the container at /app
-COPY . .
+# Install project dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Run the FastAPI application when the container starts
 CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]
