@@ -20,7 +20,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build Docker image
-        run: docker build -t fast-api-docker-image .
+        run: docker build -t vikky91/cell-phone-detection .
 
       - name: Push Docker image
-        run: docker push fast-api-docker-image
+        run: docker push vikky91/cell-phone-detection
